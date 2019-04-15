@@ -79,6 +79,9 @@
   <sensorpos name="col_rear_left" parent="base_link" translateX="-0.10" translateY="0.24" translateZ="0.0"/>
   <sensorpos name="col_rear_right" parent="base_link" translateX="-0.10" translateY="-0.24" translateZ="0.0"/>
 
+  <!--LIDAR SENSOR -->
+  <sensorpos name="base_laser" parent="base_link" translateX="0.2" translateY="0.0" translateZ="0.00"/>
+
   <!-- CUTTING DISC -->
   <link name="cutting_disc_center">
     <visual>
@@ -123,7 +126,7 @@
   </joint>
 
 
- 
+
   <!-- GAZEBO STUFF -->
   <gazebo>
     <plugin name="automower_gazebo_controller" filename="libam_gazebo_controller_2wd.so">
