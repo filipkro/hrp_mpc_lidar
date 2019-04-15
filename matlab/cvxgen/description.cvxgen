@@ -1,0 +1,47 @@
+# Produced by CVXGEN, 2019-04-15 05:31:41 -0400.
+# CVXGEN is Copyright (C) 2006-2017 Jacob Mattingley, jem@cvxgen.com.
+# The code in this file is Copyright (C) 2006-2017 Jacob Mattingley.
+# CVXGEN, or solvers produced by CVXGEN, cannot be used for commercial
+# applications without prior written permission from Jacob Mattingley.
+
+# Filename: description.cvxgen.
+# Description: A description of the CVXGEN problem.
+
+dimensions
+  m = 2  # inputs.
+  n = 3  # states.
+  T = 10  # horizon.
+end
+
+parameters
+  A (n,n)  # dynamics matrix.
+  B (n,m)  # transfer matrix.
+  Q (n,n) psd  # state cost.
+  Q_final (n,n) psd  # final state cost.
+  R (m,m) psd  # input cost.
+  x[0] (n)  # initial state.
+  r[t] (n), t=0..T+1 # reference
+  u1_max  nonnegative  # amplitude limit.
+  u2_max  nonnegative  # amplitude limit.
+  S nonnegative  # slew rate limit.
+  Th nonnegative #
+  u1_prev
+  u2_prev
+end
+
+variables
+  x[t] (n), t=1..T+1  # state.
+  u[t] (m), t=0..T+1  # input.
+end
+
+minimize
+  sum[t=1..T](quad(x[t]-r[t], Q) + quad(u[t]-u[t-1], R)) + quad(x[T+1]-r[T+1], Q_final) + quad(x[0]-r[0],Q)
+subject to
+  x[t+1] == A*x[t] + B*u[t], t=0..T  # dynamics constraints.
+  abs(u[t][1]) <= u1_max, t=0..T  # maximum input box constraint.
+  abs(u[t][2]) <= u2_max, t=0..T  # maximum input box constraint.
+  abs(u[t][1] - u[t-1][1]) <= S, t=1..T  # slew rate constraint.
+  abs(u[0][1] - u1_prev) <= S
+  abs(u[t][2] - u[t-1][2]) <= Th, t = 1..T #delta theta
+  abs(u[0][2] - u2_prev) <= Th
+end
