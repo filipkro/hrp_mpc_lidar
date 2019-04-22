@@ -7,10 +7,14 @@ project(nep_husq)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  #geometry_msgs #mgn add
+  #rplidar_ros #mgn add
+  #am_driver_safe #mgn add
 )
 
 ## System dependencies are found with CMake's conventions
@@ -102,10 +106,11 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES nep_husq
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+   CATKIN_DEPENDS roscpp rospy std_msgs #rplidar_ros #am_driver_safe
 #  DEPENDS system_lib
 )
 
