@@ -1,6 +1,6 @@
 <!--
-  Used for visualising rplidar in action.  
-  
+  Used for visualising rplidar in action.
+
   It requires rplidar.launch.
  -->
 <launch>

@@ -1,5 +1,6 @@
 <launch>
 
+  <!-- <include file="$(find nep_husq)/launch/rplidar.launch" /> -->
 
   <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
     <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
@@ -9,6 +10,12 @@
     <param name="inverted"            type="bool"   value="false"/>
     <param name="angle_compensate"    type="bool"   value="true"/>
   </node>
+
+
+  <!-- <node name="rviz" pkg="rviz" type="rviz" ars="-d $(find rplidar_ros)/rviz/rplidar.rviz" /> -->
+
+  <include file="$(find hector_slam_launch)/launch/tutorial.launch"/>
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find am_description)/urdf/automower.urdf.xacro'" />
 
   <!-- Start the am_driver -->
   <node name="am_driver_safe" pkg="am_driver_safe" type="am_driver_safe_node" output="screen">
