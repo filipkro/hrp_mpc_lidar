@@ -80,7 +80,28 @@
   <sensorpos name="col_rear_right" parent="base_link" translateX="-0.10" translateY="-0.24" translateZ="0.0"/>
 
   <!--LIDAR SENSOR -->
-  <sensorpos name="base_laser" parent="base_link" translateX="0.2" translateY="0.0" translateZ="0.00"/>
+  <!-- sensorpos name="base_laser" parent="base_link" translateX="0.2" translateY="0.0" translateZ="0.00"/ -->
+
+  <!-- LIDAR SENSOR 2.0-->
+  <link name="base_laser">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+            <cylinder length="0.01" radius="0.11" />
+        </geometry>
+        <material name="Purple" />
+    </visual>
+  </link>
+
+  <gazebo reference="base_laser">
+    <turnGravityOff>false</turnGravityOff>
+  </gazebo>
+
+  <joint name="base_laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_laser" />
+	<origin xyz="0.0 0.0 0.25" rpy="0 0 0" />
+  </joint>
 
   <!-- CUTTING DISC -->
   <link name="cutting_disc_center">
