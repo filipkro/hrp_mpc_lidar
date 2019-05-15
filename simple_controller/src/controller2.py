@@ -6,6 +6,7 @@ from tf.transformations import euler_from_quaternion
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import PoseStamped
 from math import atan2
 
 # Store the current position of robot in intertial frame
@@ -61,9 +62,9 @@ def newOdom(msg) :
 
 rospy.init_node("position_controller")
 
-#sub = rospy.Subscriber("/odometry/filtered", Odometry, newOdom)
-#sub_goal = rospy.Subscriber("/move_base_simple/goal", PointStamped, newGoal)
-#sub_pos = rospy.Subscriber("/slam_out_pose", PointStamped, newPos)
+sub = rospy.Subscriber("/odometry/filtered", Odometry, newOdom)
+sub_goal = rospy.Subscriber("/move_base_simple/goal", PoseStamped, newGoal)
+sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
 sub = rospy.Subscriber("/odom", Odometry, newOdom)
 
 pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
@@ -84,27 +85,10 @@ while not rospy.is_shutdown():
 
     try :
         print("try")
+        speed.linear.x = 0.0
+        speed.angular.z = 0.1
+        print("Theta", theta)
 
-
-        delta_x = x_goal - x
-        delta_y = y_goal - y
-
-        if (delta_x < 0.3 & delta_y < 0.3) :
-            speed.linear.x = 0.0
-            speed.angular.z = 0.0
-        else :
-            angle_to_goal = atan2(delta_y, delta_x);
-            print(theta)
-            if (angle_to_goal - theta) > 0.1:
-                speed.linear.x = 0.0
-                speed.angular.z = 0.3
-            elif(angle_to_goal - theta) < 0.1:
-                speed.linear.x = 0.0
-                speed.angular.y = -0.3
-            else:
-                speed.linear.x = 0.5
-                speed.angular.z = 0.0
-                print("else")
     except :
         print("except")
         speed.linear.x = 0.0

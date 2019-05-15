@@ -8,6 +8,8 @@ from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PointStamped
 from geometry_msgs.msg import PoseStamped
 from math import atan2
+import numpy as np
+import math
 
 # Store the current position of robot in intertial frame
 
@@ -76,7 +78,7 @@ pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 
 speed = Twist()
 
-rate = rospy.Rate(4)
+rate = rospy.Rate(10)
 
 goal = Point()
 goal.x = 4.48;
@@ -97,22 +99,40 @@ while not rospy.is_shutdown():
         delta_x = x_goal - x
         delta_y = y_goal - y
 
-        if (delta_x < 0.3 & delta_y < 0.3) :
+        print("delta_x: ", delta_x)
+        print("delta_y: ", delta_y)
+
+        if abs(delta_x) < 0.1 and abs(delta_y) < 0.1 :
+            print("if")
             speed.linear.x = 0.0
             speed.angular.z = 0.0
         else :
-            angle_to_goal = atan2(delta_y, delta_x);
-            print(theta)
-            if (angle_to_goal - theta) > 0.1:
+            print("else")
+            atan2_angle = atan2(delta_y, delta_x)
+            angle_to_goal = angle_atan2 - theta + math.pi
+            angle_to_goal = angle_to_goal % 2*math.pi
+
+            print("Angle to Goal", angle_to_goal)
+
+            dist_to_goal = math.sqrt(delta_x**2 + delta_y**2);
+            print("Dist. to Goal", dist_to_goal)
+
+
+
+            if (angle_to_goal) > 0.1:
+                print("rotate+")
                 speed.linear.x = 0.0
                 speed.angular.z = 0.3
-            elif(angle_to_goal - theta) < 0.1:
+            elif(angle_to_goal) < -0.1:
+                print("rotate-")
                 speed.linear.x = 0.0
-                speed.angular.y = -0.3
+                speed.angular.z = -0.3
             else:
-                speed.linear.x = 0.5
+                print("Go straight")
+                speed.linear.x = 0.1
                 speed.angular.z = 0.0
-                print("else")
+
+
     except :
         print("except")
         speed.linear.x = 0.0
