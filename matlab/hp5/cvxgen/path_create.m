@@ -1,7 +1,7 @@
 function path = path_create(h)
 
     t = linspace(1,50,50/h);
-    x = cos(0.05*t);
+    x = -cos(0.05*t);
     y = cos(0.1*t).*sin(0.01*t);
     theta = 0 *t;
     path = [x;y;theta];
