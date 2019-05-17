@@ -9,6 +9,6 @@ function path = path_create(h)
 %     t = linspace(1,100, 100/h);
 %     theta = 0 *t;
 %     y = [zeros(1,20/h) 5*ones(1,80/h)];
-% %     theta = pi/4*ones(1,length(t));
+%   %  theta = pi/4*ones(1,length(t));
 %     path = [t;y;theta];
 end
