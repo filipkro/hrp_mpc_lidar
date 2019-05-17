@@ -15,6 +15,7 @@
   <!-- <node name="rviz" pkg="rviz" type="rviz" ars="-d $(find rplidar_ros)/rviz/rplidar.rviz" /> -->
 
   <include file="$(find hector_slam_launch)/launch/tutorial.launch"/>
+  
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find am_description)/urdf/automower.urdf.xacro'" />
 
   <!-- Start the am_driver -->

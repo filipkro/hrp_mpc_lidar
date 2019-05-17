@@ -25,6 +25,14 @@ theta_goal = 0.0
 x_odom = 0.0
 y_odom = 0.0
 
+time = range(100)
+lin = np.linspace(0.0, 1.0, num=100)
+print(np.power(lin,2))
+print(lin)
+
+relative_ref = np.transpose(np.matrix([np.power(lin,2), lin]))
+print("Shape relative_ref: ", relative_ref.shape)
+
 # Callbak function
 def newGoal(msg) :
 
@@ -83,6 +91,7 @@ speed = Twist()
 
 rate = rospy.Rate(10)
 
+"""
 while not rospy.is_shutdown():
 
     print("x-pos: ", x)
@@ -100,7 +109,7 @@ while not rospy.is_shutdown():
         print("delta_x: ", delta_x)
         print("delta_y: ", delta_y)
 
-        if abs(delta_x) < 0.15 and abs(delta_y) < 0.15 :
+        if abs(delta_x) < 0.1 and abs(delta_y) < 0.1 :
             print("if")
             speed.linear.x = 0.0
             speed.angular.z = 0.0
@@ -117,14 +126,14 @@ while not rospy.is_shutdown():
             if (angle_to_goal) > 0.1:
                 print("rotate+")
                 speed.linear.x = 0.0
-                speed.angular.z = 0.15
+                speed.angular.z = 0.3
             elif(angle_to_goal) < -0.1:
                 print("rotate-")
                 speed.linear.x = 0.0
-                speed.angular.z = -0.5
+                speed.angular.z = -0.3
             else:
                 print("Go straight")
-                speed.linear.x = 0.15
+                speed.linear.x = 0.1
                 speed.angular.z = 0.0
 
 
@@ -135,3 +144,4 @@ while not rospy.is_shutdown():
 
     pub.publish(speed)
     rate.sleep()
+"""
