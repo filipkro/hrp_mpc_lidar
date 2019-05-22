@@ -19,34 +19,9 @@ import numpy as np
 import math
 import sys
 
-class Node(object):
-    def __init__(self, point, parent):
-        super(Node, self).__init__()
-        self.point = point
-        self.parent = parent
+import rrt_test
 
-
-"""
-def ogrid_callback(self, msg):
-
-        #Expects an OccupancyGrid message.
-        #Stores the ogrid array and origin vector.
-        #Reevaluates the current plan since the ogrid changed.
-
-
-        start = self.rostime()
-        self.ogrid = np.array(msg.data).reshape((msg.info.height, msg.info.width))
-        self.ogrid_origin = np.array([msg.info.origin.position.x, msg.info.origin.position.y])
-        self.ogrid_cpm = 1 / msg.info.resolution
-        try:
-            self.reevaluate_plan()
-        except:
-            # print("(WARNING: something went wrong in reevaluate_plan)")
-        elapsed = abs(self.rostime() - start)
-        if elapsed > 1:
-            # print("(WARNING: ogrid callback is taking seconds)".format(np.round(elapsed, 2)))
-"""
-class rrt :
+class rrt_handler :
     def __init__(self):
         self.ogrid = None
         self.ogrid_origin = None
@@ -107,6 +82,7 @@ class rrt :
             print("Ogrid patch", self.ogrid[0:50, 0:50])
 
 
+            RRT = rrt_test.rrt()
 
             # This opens new windows for displaying images every interation -> super anoying
             #img = ogrid + 1
@@ -121,8 +97,8 @@ class rrt :
             #plt.show()
             #plt.show(block=False)
             #plt.figure(1) # throws error
-            plt.figure()
-            plt.ion()
+            #plt.figure()
+            #plt.ion()
             imgplot = plt.imshow(self.ogrid)
 
             #plt.show(block=False)
@@ -134,8 +110,8 @@ class rrt :
             N = 50
             N = 10
             x = 256*np.random.rand(N)
-            print("RRT.vec", np.transpose(RRT.vec[:,0]))
-            print("RRT.vec shape", np.transpose(RRT.vec[:,0]).shape)
+            #print("RRT.vec", np.transpose(RRT.vec[:,0]))
+            #print("RRT.vec shape", np.transpose(RRT.vec[:,0]).shape)
             y = 256*np.random.rand(N)
             colors = np.random.rand(N)
             area = (30 * np.random.rand(N))**2  # 0 to 15 point radii
@@ -186,8 +162,8 @@ class rrt :
 
 
 if __name__ == "__main__":
-    rospy.init_node("rrt_node")
-    RRT = rrt()
+    rospy.init_node("rrt_handler_node")
+    RRT_handler = rrt_handler()
 
     """
     plt.ion()
@@ -196,19 +172,7 @@ if __name__ == "__main__":
     axes.set_xlim([-5,260])
     axes.set_ylim([-5,260])
     """
-
     print("HEEEEEY")
-
-    #f1 = plt.figure()
-    #f2 = plt.figure()
-
-    #plt.figure(f2.number)
-    #plt.scatter(np.transpose(RRT.vec[:,0]),np.transpose(RRT.vec[:,1]))
-    #plt.plot(np.transpose(RRT.vec[:,0]),np.transpose(RRT.vec[:,1]), 'bo')
-    #plt.show(block=False)
-    #plt.draw()
-
-
     """
     np.random.seed(19680801)
     N = 50
@@ -230,11 +194,4 @@ if __name__ == "__main__":
 
     while not rospy.is_shutdown() :
         print("Running")
-        RRT.rate.sleep()
-        """
-        if(RRT.flag == 1) :
-            try :
-                print("ogrid-shape", RRT.ogrid().shape)
-            except :
-                print("no ogrid yet")
-        """
+        RRT_handler.rate.sleep()

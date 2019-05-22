@@ -27,8 +27,8 @@ class Node(object):
         self.parent = parent
 
 class rrt :
-    def __init__(self):
-        self.ogrid = None
+    def __init__(self, ogrid):
+        self.ogrid = ogrid
 
         self.nodes = []
         self.initial_point = Node(np.array([0,0]), False)
@@ -61,9 +61,9 @@ class rrt :
                 for p in self.nodes:
                     if self.dist(p.point,rand) <= self.dist(parentNode.point,rand):
                         newPoint = self.step_from_to(p.point,rand)
-                        #if collides(newPoint) == False:
-                        parentNode = p
-                        foundNext = True
+                        if self.collides(newPoint) == False:
+                            parentNode = p
+                            foundNext = True
 
             newnode = self.step_from_to(parentNode.point,rand)
             #print("Newpoint", newnode)
@@ -95,6 +95,8 @@ class rrt :
 
     def get_random_clear(self) :
         rand_point = np.random.uniform(0,256,2)
+        #rand_point = np.round(np.random.uniform(0,256,2))
+
         #rand_point = np.array([np.round(np.random.uniform(0,256,1)),np.round(np.random.uniform(0,256,1))])
         #print("Random point generation", rand_point)
         self.all_random = np.append(self.all_random, rand_point,  axis=0)
@@ -105,7 +107,7 @@ class rrt :
             return p2
         else:
             theta = math.atan2(p2[1]-p1[1],p2[0]-p1[0])
-            return np.round(p1 + np.array([self.delta*math.cos(theta), self.delta*math.sin(theta)]))#(p1[0] + np.array([self.delta*math.cos(theta), p1[1] + self.delta*math.sin(theta)])
+            return np.round(p1 + np.array([self.delta*math.cos(theta), self.delta*math.sin(theta)]))
     def get_all_nodes(self):
         shape = self.all_nodes.shape
         return self.all_nodes.reshape(shape[0]/2, 2)
@@ -113,6 +115,14 @@ class rrt :
     def get_all_random(self):
         shape = self.all_random.shape
         return self.all_random.reshape(shape[0]/2, 2)
+
+    def collides(self, point):
+        #print("point", point)
+        #print(point[0])
+        #print(int(point[0]))
+        if self.ogrid[int(point[0]),int(point[1])] < 49 :
+            return True
+        return False
 
     def get_goal_node(self) :
         return self.goalNode
