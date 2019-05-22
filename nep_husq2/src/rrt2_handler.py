@@ -90,17 +90,17 @@ class rrt_handler :
             path = RRT.get_path()
             path_shape = path.shape
             path = path.reshape(path_shape[0]/2,2)
-            path = path
-            #print("PATH", path)
-            #print("Path shape", path_shape[0])
+            path = path*0.01
+            print("PATH", path)
+            print("Path shape", path_shape[0])
             self.path = path
             self.path_shape = path_shape
 
-            """
             for i in range(path_shape[0]/2) :
                 marker = Marker()
                 marker.header.frame_id = "/map"
                 marker.type = marker.SPHERE
+                #marker.type = marker.LINE_STRIP
                 marker.action = marker.ADD
                 marker.scale.x = 0.05
                 marker.scale.y = 0.05
@@ -114,8 +114,18 @@ class rrt_handler :
                 marker.pose.position.y = path[i, 1]
                 marker.pose.position.z = 0
                 self.markerArray.markers.append(marker)
-            """
 
+                print("append marker")
+
+            id = 0
+            for m in self.markerArray.markers:
+                m.id = id
+                id += 1
+
+            self.publisher.publish(self.markerArray)
+            self.markerArray = MarkerArray()
+
+                #rospy.sleep(0.01)
 
 
             """
@@ -153,6 +163,7 @@ if __name__ == "__main__":
 
         self.publisher.publish(self.markerArray)
         """
+        """
         try :
             print("Path shape main", RRT_handler.path_shape[0])
             for i in range(RRT_handler.path_shape[0]/2) :
@@ -177,6 +188,7 @@ if __name__ == "__main__":
 
         except :
             print("No path")
+        """
 
         """
         RRT_handler.counter = RRT_handler.counter + 1

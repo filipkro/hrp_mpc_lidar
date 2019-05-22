@@ -34,10 +34,10 @@ class rrt :
         self.initial_point = Node(np.array([0,0]), False)
         self.nodes.append(self.initial_point)
 
-        self.goalPoint = np.array([10.0,200.0])
-        self.goalPoint = np.round(np.random.uniform(0,256,2))
+        self.goalPoint = np.array([100.0,100.0])
+        #self.goalPoint = np.round(np.random.uniform(0,256,2))
 
-        self.NUMNODES = 300
+        self.NUMNODES = 500
         self.node_counter = 0
         self.delta = 15
 
@@ -46,7 +46,7 @@ class rrt :
 
         self.goalNode = None
         self.goalFound = False
-        self.GOAL_RADIUS = 10.0
+        self.GOAL_RADIUS = 5.0
         print("DISTABCE TEST", self.dist(self.goalPoint, np.array([20.0,200.0])))
 
         self.path = np.array([0,0])

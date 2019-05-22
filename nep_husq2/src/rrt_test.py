@@ -35,9 +35,9 @@ class rrt :
         self.nodes.append(self.initial_point)
 
         self.goalPoint = np.array([10.0,200.0])
-        self.goalPoint = np.round(np.random.uniform(0,256,2))
+        #self.goalPoint = np.round(np.random.uniform(0,256,2))
 
-        self.NUMNODES = 300
+        self.NUMNODES = 500
         self.node_counter = 0
         self.delta = 15
 
