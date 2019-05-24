@@ -34,7 +34,7 @@ class rrt :
         self.initial_point = Node(np.array([0,0]), False)
         self.nodes.append(self.initial_point)
 
-        self.goalPoint = np.array([10.0,200.0])
+        self.goalPoint = np.array([10.0,100.0])
         #self.goalPoint = np.round(np.random.uniform(0,256,2))
 
         self.NUMNODES = 500
@@ -94,7 +94,7 @@ class rrt :
         return math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
 
     def get_random_clear(self) :
-        rand_point = np.random.uniform(0,256,2)
+        rand_point = np.random.uniform(0,256,2) - 128
         #rand_point = np.array([np.round(np.random.uniform(0,256,1)),np.round(np.random.uniform(0,256,1))])
         #print("Random point generation", rand_point)
         self.all_random = np.append(self.all_random, rand_point,  axis=0)

@@ -2,12 +2,14 @@
 
 import rospy
 from nav_msgs.msg import Odometry
-from tf.transformations import euler_from_quaternion
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PointStamped
 from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import OccupancyGrid
+from geometry_msgs.msg import PoseArray, Pose
 
 import matplotlib.pyplot as plt
 #from matplotlib.pyplot import plot, draw, show
@@ -43,15 +45,20 @@ class rrt_handler :
         self.x_scat = np.array([])
         self.y_scat = np.array([])
 
-        # Subscriber
+        # Subscribers
         self.sub_map = rospy.Subscriber("/map", OccupancyGrid, self.ogrid_callback)
         #sub_map_meta = rospy.Subscriber("/slam_out_pose", MapMetaData, ogrid_emta_callback)
+        self.sub_goal = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.newGoal)
+        self.sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, self.newPos)
+        self.sub_pos2 = rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, self.newPos2)
 
-        # Publisher
+        # Marker Publisher
         self.markerArray = MarkerArray()
         self.topic = 'visualization_marker_array'
         self.publisher = rospy.Publisher(self.topic, MarkerArray, queue_size=1)
-
+        # PoseArray Publisher
+        self.poseArray = PoseArray()
+        self.pose_array_pub = rospy.Publisher("/poseArrayTopic", PoseArray)
 
         #speed = Twist()
         self.rate = rospy.Rate(2)
@@ -62,7 +69,13 @@ class rrt_handler :
         self.path = None
         self.path_shape = None
 
+        self.x_pos = 0.0
+        self.y_pos = 0.0
 
+        self.x_goal = 0.0
+        self.y_goal = 0.0
+
+        self.prev_theta = 0.0
 
     def ogrid_callback(self, msg):
 
@@ -72,25 +85,29 @@ class rrt_handler :
             start = self.rostime()
             self.ogrid = np.array(msg.data).reshape((msg.info.height, msg.info.width))
             print("Shape ogrid", self.ogrid.shape)
-            print("Ogrid patch", self.ogrid[0:50, 0:50])
+            #print("Ogrid patch", self.ogrid[0:50, 0:50])
 
 
             self.ogrid[self.ogrid < 0] = 50
-            print(self.ogrid[100:150,100:150])
+            #print("Ogrid patch2" self.ogrid[100:150,100:150])
+            #print("MAX OGRID", np.max(self.ogrid))
+            #print("MIN OGRID", np.min(self.ogrid))
 
             RRT = rrt_test2.rrt(self.ogrid)
-            #RRT = rrt_test.rrt()
+            RRT.startPoint = np.array([self.x_pos, self.y_pos])
+            RRT.goalPoint = np.array([self.x_goal, self.y_goal])
             RRT.build_tree()
-            """
-            plt.figure(1)
-            imgplot = plt.imshow(self.ogrid)
-            plt.show(block=False)
-            plt.figure(2)
-            """
+            print("START POINT", RRT.startPoint)
+            print("GOAL POINT", RRT.goalPoint)
+
+
+            # GET PATH FOR PLOTTING
+
             path = RRT.get_path()
+            #path = np.flip(path, axis = 0)
             path_shape = path.shape
             path = path.reshape(path_shape[0]/2,2)
-            path = path*0.01
+            path = path*0.05
             print("PATH", path)
             print("Path shape", path_shape[0])
             self.path = path
@@ -102,9 +119,9 @@ class rrt_handler :
                 marker.type = marker.SPHERE
                 #marker.type = marker.LINE_STRIP
                 marker.action = marker.ADD
-                marker.scale.x = 0.05
-                marker.scale.y = 0.05
-                marker.scale.z = 0.05
+                marker.scale.x = 0.08
+                marker.scale.y = 0.08
+                marker.scale.z = 0.08
                 marker.color.a = 1.0
                 marker.color.r = 1.0 # make it red
                 marker.color.g = 0.0
@@ -112,10 +129,72 @@ class rrt_handler :
                 marker.pose.orientation.w = 1.0
                 marker.pose.position.x = path[i, 0]
                 marker.pose.position.y = path[i, 1]
+                marker.pose.position.z = 0.0
+                self.markerArray.markers.append(marker)
+
+                # make the PoseArray
+                #self.poseArray.header.stamp = self.rostime()
+                self.poseArray.header.frame_id = "/map"
+                somePose = Pose()
+                #somePose.header.frame_id = "/map" ###
+                somePose.position.x = path[i, 0]
+                somePose.position.y = path[i, 1]
+                somePose.position.z = 0.0
+
+                try :
+                #if (i < path_shape[0]/2 -1) :
+                    #print("try")
+                    #ang_i_cur = math.atan2(path[i, 0], path[i, 1])
+                    #ang_i_next = math.atan2(path[i+1, 0], path[i+1, 1])
+                    ang_i_cur = math.atan2(path[i, 1], path[i, 0])
+                    ang_i_next = math.atan2(path[i+1, 1], path[i+1, 0])
+                    #angle_to_next = (ang_i_next + ang_i_cur + math.pi) % (2.0*math.pi) - math.pi
+                    angle_to_next = math.atan2(path[i+1, 1]-path[i, 1], path[i+1, 0]-path[i, 0])
+                    self.prev_theta = angle_to_next
+                    print("ang_i_cur", ang_i_cur)
+                    print("ang_i_next", ang_i_next)
+                    print("Angle to next", ang_i_next)
+                    #(roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+                    (somePose.orientation.x, somePose.orientation.y, somePose.orientation.z, somePose.orientation.w) = \
+                     quaternion_from_euler(0.0, 0.0, angle_to_next)
+                except :
+                    print("except")
+                    somePose.orientation.x = 0.0
+                    somePose.orientation.y = 0.0
+                    somePose.orientation.z = 0.0
+                    somePose.orientation.w = 1.0
+
+                self.poseArray.poses.append(somePose)
+
+            # GET POINTS FOR PLOTTING
+            all_points = RRT.get_all_nodes()
+            all_points_shape = all_points.shape
+            print("All points shape", all_points_shape)
+            #all_points = all_points.reshape(all_points_shape[0]/2,2)
+            all_points = all_points*0.05
+            #print("PATH", all_points)
+            #self.path = path
+            #self.path_shape = path_shape
+
+            for i in range(all_points_shape[0]/2) :
+                marker = Marker()
+                marker.header.frame_id = "/map"
+                marker.type = marker.SPHERE
+                #marker.type = marker.LINE_STRIP
+                marker.action = marker.ADD
+                marker.scale.x = 0.05
+                marker.scale.y = 0.05
+                marker.scale.z = 0.05
+                marker.color.a = 1.0
+                marker.color.r = 0.0 # make it red
+                marker.color.g = 0.0
+                marker.color.b = 1.0
+                marker.pose.orientation.w = 1.0
+                marker.pose.position.x = all_points[i, 0]
+                marker.pose.position.y = all_points[i, 1]
                 marker.pose.position.z = 0
                 self.markerArray.markers.append(marker)
 
-                print("append marker")
 
             id = 0
             for m in self.markerArray.markers:
@@ -125,14 +204,8 @@ class rrt_handler :
             self.publisher.publish(self.markerArray)
             self.markerArray = MarkerArray()
 
-                #rospy.sleep(0.01)
-
-
-            """
-            plt.scatter(path[:,0], path[:,1], s=150, c='k', marker='o',)
-            plt.show(block=False)
-            """
-
+            self.pose_array_pub.publish(self.poseArray)
+            self.poseArray = PoseArray()
 
             self.ogrid_origin = np.array([msg.info.origin.position.x, msg.info.origin.position.y])
             self.ogrid_cpm = 1 / msg.info.resolution
@@ -145,6 +218,41 @@ class rrt_handler :
             if elapsed > 1:
                 print("\n(WARNING: ogrid callback is taking {} seconds)\n".format(np.round(elapsed, 2)))
 
+
+    def newGoal(self, msg) :
+        print("newGoal Callback")
+        self.x_goal = round(20*msg.pose.position.x)
+        self.y_goal = round(20*msg.pose.position.y)
+
+        rot_q = msg.pose.orientation
+        (roll_goal, pitch_goal, theta_goal) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+        #theta = yaw;
+
+    # Callbak function
+    def newPos(self, msg) :
+
+        print("newPos Callback")
+        self.x_pos = round(20*msg.pose.position.x)
+        self.y_pos = round(20*msg.pose.position.y)
+
+        print("X-POS", self.x_pos)
+        print("Y-POS", self.y_pos)
+
+        rot_q = msg.pose.orientation
+        (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+
+    # Callbak function for pose estimation from Rviz
+    def newPos2(self, msg) :
+
+        print("newPos2 Callback")
+        self.x_pos = round(20*msg.pose.pose.position.x)
+        self.y_pos = round(20*msg.pose.pose.position.y)
+
+        print("X-POS", self.x_pos)
+        print("Y-POS", self.y_pos)
+
+        rot_q = msg.pose.pose.orientation
+        (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
 
 if __name__ == "__main__":
     rospy.init_node("rrt_handler_node")

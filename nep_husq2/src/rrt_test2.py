@@ -27,32 +27,46 @@ class Node(object):
         self.parent = parent
 
 class rrt :
-    def __init__(self, ogrid):
-        self.ogrid = ogrid
+    def __init__(self, ogrid_in):
+        self.ogrid = ogrid_in
+
+        #OGRID IS TRANSPOSED --> FLIP AND START POINT
+        #self.goalPoint = np.flip(np.array([0.0, 15.0]), axis=0)
+        #self.goalPoint = np.round(np.random.uniform(0,256,2))
+        #self.startPoint = np.flip(np.array([0.0, 0.0]), axis=0)
+
+        self.goalPoint = np.array([0.0, 15.0])
+        self.startPoint = np.array([0.0, 0.0])
 
         self.nodes = []
-        self.initial_point = Node(np.array([0,0]), False)
-        self.nodes.append(self.initial_point)
 
-        self.goalPoint = np.array([100.0,100.0])
-        #self.goalPoint = np.round(np.random.uniform(0,256,2))
+        # self.initial_point = Node(self.startPoint, False)
+        # self.nodes.append(self.initial_point)
+        self.initial_point = None
 
-        self.NUMNODES = 500
+
+        self.NUMNODES = 1500
         self.node_counter = 0
-        self.delta = 15
+        self.delta = 3
 
         self.all_nodes = np.array([0,0])
         self.all_random = np.array([0,0])
 
         self.goalNode = None
         self.goalFound = False
-        self.GOAL_RADIUS = 5.0
-        print("DISTABCE TEST", self.dist(self.goalPoint, np.array([20.0,200.0])))
+        self.GOAL_RADIUS = 2
+        print("DISTANCE TEST", self.dist(self.goalPoint, np.array([20.0,200.0])))
 
         self.path = np.array([0,0])
 
+        self.sampleSpaceSize = 80;
+
 
     def build_tree(self) :
+
+        self.initial_point = Node(self.startPoint, False)
+        self.nodes.append(self.initial_point)
+
         while self.node_counter < self.NUMNODES and self.goalFound == False:
             foundNext = False
             while foundNext == False:
@@ -61,6 +75,7 @@ class rrt :
                 for p in self.nodes:
                     if self.dist(p.point,rand) <= self.dist(parentNode.point,rand):
                         newPoint = self.step_from_to(p.point,rand)
+                        #print("Newpoint", newPoint)
                         if self.collides(newPoint) == False:
                             parentNode = p
                             foundNext = True
@@ -77,7 +92,7 @@ class rrt :
                 size = self.get_size()
                 self.goalNode = self.nodes[size-1]
 
-            print("DIST", self.dist(newnode, self.goalPoint))
+            #print("DIST", self.dist(newnode, self.goalPoint))
 
             self.node_counter = self.node_counter + 1
 
@@ -87,14 +102,14 @@ class rrt :
             while par != False :
                 self.path = np.append(self.path, par.point, axis=0)
                 par = par.parent
-                print("pathing2")
+                #print("pathing2")
 
 
     def dist(self,p1,p2):    #distance between two points
         return math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
 
     def get_random_clear(self) :
-        rand_point = np.random.uniform(0,256,2)
+        rand_point = np.random.uniform(0,self.sampleSpaceSize,2) - self.sampleSpaceSize/2
         #rand_point = np.round(np.random.uniform(0,256,2))
 
         #rand_point = np.array([np.round(np.random.uniform(0,256,1)),np.round(np.random.uniform(0,256,1))])
@@ -120,9 +135,9 @@ class rrt :
         #print("point", point)
         #print(point[0])
         #print(int(point[0]))
-        if self.ogrid[int(point[0]),int(point[1])] < 49 :
-            return True
-        return False
+        if self.ogrid[int(point[1])+128 ,int(point[0])+128] < 40 :
+            return False
+        return True
 
     def get_goal_node(self) :
         return self.goalNode
@@ -134,6 +149,10 @@ class rrt :
         return len(self.nodes)
     def get_path(self) :
         return self.path
+    def set_goal(self, point) :
+        self.goalPoint = np.flip(point, axis=0)
+    def set_pos(self, point) :
+        self.startPoint = np.flip(point, axis=0)
 
 if __name__ == "__main__":
     RRT = rrt()
