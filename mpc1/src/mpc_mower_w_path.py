@@ -57,11 +57,26 @@ def newOdom(msg) :
     (roll, pitch, theta_odom) = euler_fq([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
     #theta = yaw;
 
+
+# Callbak function - for path
+def path_cb(msg) :
+    global xValue
+    global yValue
+    global thetaValue
+    xValue = []
+    yValue = []
+    thetaValue = []
+    for i in msg.poses:
+        xValue.append(i.pose.position.x)
+        yValue.append(i.pose.position.y)
+        (roll, pitch, theta_path) = euler_from_quaternion([i.pose.orientation.x, i.pose.orientation.y, i.pose.orientation.z, i.pose.orientation.w])
+        thetaValue.append(theta_path)
+
 rospy.init_node("position_controller")
 
 sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
 sub = rospy.Subscriber("/odom", Odometry, newOdom)
-
+sub_path = rospy.Subscriber('/move_base/TrajectoryPlannerROS/local_plan', Path, path_cb)
 pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 
 speed = Twist()
@@ -72,20 +87,29 @@ MARKERS_MAX = 100
 count = 0
 
 #PATH
+#funkar:
+# x_len = 6
+# run_time = 40
+# temp = np.linspace(0, x_len, run_time/h)
+# xref_long = np.array(temp)
+# for i in range(5):
+#     np.append(xref_long, x_len)
+#    # xref_long.append(x_len)
+# yref_long = 0*xref_long
 
-x_len = 6
+# for i in range(8):
+#     yref_long[i+5] = 0.15*i
+#     yref_long[34-i] = 0.15*i
+# yref_long[13:27] = 0.15*8
+
+x_len = 1
 run_time = 40
-temp = np.linspace(0, x_len, run_time/h)
-xref_long = np.array(temp)
+xref_long = np.array(np.linspace(0, x_len, run_time/h))
 for i in range(5):
     np.append(xref_long, x_len)
    # xref_long.append(x_len)
 yref_long = 0*xref_long
 
-for i in range(8):
-    yref_long[i+5] = 0.15*i
-    yref_long[34-i] = 0.15*i
-yref_long[13:27] = 0.15*8
 
 
 # xref_long = np.linspace(0, x_len, run_time/h)

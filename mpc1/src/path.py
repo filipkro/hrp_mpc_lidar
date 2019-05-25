@@ -7,15 +7,24 @@ def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
 
 h = 1
-x_len = 6
-run_time = 40
-xref_long = np.linspace(0, x_len, run_time/h)
-yref_long = 0*xref_long
+# x_len = 6
+# run_time = 40
+# xref_long = np.linspace(0, x_len, run_time/h)
+# yref_long = 0*xref_long
 
-for i in range(8):
-    yref_long[i+5] = 0.15*i
-    yref_long[34-i] = 0.15*i
-yref_long[13:27] = 0.15*8
+# for i in range(8):
+#     yref_long[i+5] = 0.15*i
+#     yref_long[34-i] = 0.15*i
+# yref_long[13:27] = 0.15*8
+
+
+x_len = 1
+run_time = 20
+xref_long = np.array(np.linspace(0, x_len, run_time/h))
+yref_long = 0 * xref_long
+temp = np.array(np.linspace(0, x_len, run_time/h))
+np.append(yref_long,temp)
+np.append(xref_long,temp*0+x_len)
 
 # for i in range(10):
 #     yref_long[i+20] = 0.25*sigmoid(3*(xref_long[i]-x_len/2))
@@ -45,6 +54,7 @@ yref_long[13:27] = 0.15*8
 #     yref_long[i] = yref_long[i] - diff 
 
 print np.amin(yref_long)
+print xref_long
 print yref_long
 print len(yref_long)
 
