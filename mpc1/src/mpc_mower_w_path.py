@@ -7,6 +7,7 @@ from geometry_msgs.msg import Point
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PointStamped
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
 import numpy as np
 import solver_interface as si
 from math import atan
@@ -69,7 +70,7 @@ def path_cb(msg) :
     for i in msg.poses:
         xValue.append(i.pose.position.x)
         yValue.append(i.pose.position.y)
-        (roll, pitch, theta_path) = euler_from_quaternion([i.pose.orientation.x, i.pose.orientation.y, i.pose.orientation.z, i.pose.orientation.w])
+        (roll, pitch, theta_path) = euler_fq([i.pose.orientation.x, i.pose.orientation.y, i.pose.orientation.z, i.pose.orientation.w])
         thetaValue.append(theta_path)
 
 rospy.init_node("position_controller")
@@ -215,21 +216,21 @@ while not rospy.is_shutdown():
         si.set_parameters(0,0,x_used)
         si.set_parameters(0,1,y_used)
         si.set_parameters(0,2,theta_used)
-        
+
         #u_prev
         si.set_parameters(13,0,u_0[0])
         si.set_parameters(13,1,u_0[1])
-        
+
         A = np.array([[1.0,0.0,-u_0[0]*h*np.sin(theta_used)], [0.0,1.0,u_0[0]*h*np.cos(theta_used)], [0.0,0.0,1.0]])
         for i in range(3):
             for j in range(3):
                 si.set_parameters(3,i+3*j,float(A[i,j]))
-        
+
         B = np.array([[h*np.cos(theta_used),-u_0[0]*np.sin(theta_used)*0.5*h**2], [h*np.sin(theta_used), u_0[0]*np.cos(theta_used)*0.5*h**2], [0,h]])
         for i in range(3):
             for j in range(2):
                 si.set_parameters(4,i+3*j,float(B[i,j]))
-        
+
         #cnt = 0
         # while xref_long & cnt < 5:
         #     xref[cnt] = xref_long.pop(0)
@@ -274,7 +275,7 @@ while not rospy.is_shutdown():
             print "deltax: " + str(deltax)
             print "deltay: " + str(deltay)
             theta_ref = atan2(deltay, deltax)
-            
+
             si.set_parameters(7,0,xref[0])
             si.set_parameters(7,1,yref[0])
             si.set_parameters(7,2,theta_ref)
@@ -297,15 +298,15 @@ while not rospy.is_shutdown():
 
             si.solve()
 
-        
-        
+
+
         cont = np.array(si.get_control_horizon())
         u1 = np.array(cont[::2])
         u2 = np.array(cont[1::2])
-            
+
         speed.linear.x = u1[0]
         speed.angular.z = u2[0]
-            
+
         u_0 = [u1[0], u2[0]]
         print "u1, u2: "
         print u_0
