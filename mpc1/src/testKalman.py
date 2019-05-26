@@ -139,7 +139,7 @@ Rsq = sl.cholesky(R)
 ## These constants were found from the sys id
 h = 1  # Time step (set this yourselves)
 d = 0.235    # half distance between the wheels (m)
-r = 0.1      # radius of the wheel (m)
+r = 0.125      # radius of the wheel (m)
 
 # we moved 5.979 m and accumulated
 #

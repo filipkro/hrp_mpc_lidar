@@ -49,7 +49,7 @@ class rrt_handler :
         self.sub_map = rospy.Subscriber("/map", OccupancyGrid, self.ogrid_callback)
         #sub_map_meta = rospy.Subscriber("/slam_out_pose", MapMetaData, ogrid_emta_callback)
         self.sub_goal = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.newGoal)
-        self.sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, self.newPos)
+       # self.sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, self.newPos)
         self.sub_pos2 = rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, self.newPos2)
         self.sub_path2 = rospy.Subscriber("/poseArrayTopic", PoseArray, self.path_cb2)
 
@@ -111,6 +111,7 @@ class rrt_handler :
             # GET PATH FOR PLOTTING
 
             path = RRT.get_path()
+            print("PATH ", path)
             path_shape = path.shape
             path = path.reshape(path_shape[0]/2,2)
             print("PATH1", path)
@@ -212,8 +213,9 @@ class rrt_handler :
 
             self.publisher.publish(self.markerArray)
             self.markerArray = MarkerArray()
-
-            self.pose_array_pub.publish(self.poseArray)
+            path_shape = shape.path
+            if path_shape[0] > 4 :
+                self.pose_array_pub.publish(self.poseArray)
             self.poseArray = PoseArray()
 
             self.ogrid_origin = np.array([msg.info.origin.position.x, msg.info.origin.position.y])
@@ -281,9 +283,9 @@ class rrt_handler :
             (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
             self.thetaValue = np.append(self.thetaValue, theta_pos)
 
-        print("xValue", self.xValue)
-        print("yValue", self.yValue)
-        print("thetaValue", self.thetaValue)
+        #print("xValue", self.xValue)
+        #print("yValue", self.yValue)
+        #print("thetaValue", self.thetaValue)
 
 if __name__ == "__main__":
     rospy.init_node("rrt_handler_node")

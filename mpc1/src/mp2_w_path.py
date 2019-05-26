@@ -51,6 +51,28 @@ def path_cb(msg) :
         (roll, pitch, theta_path) = euler_fq([i.pose.orientation.x, i.pose.orientation.y, i.pose.orientation.z, i.pose.orientation.w])
         thetaValue.append(theta_path)
 
+def path_cb2(self, msg) :
+    global xValue
+    global yValue
+    global thetaValue
+    xValue = []
+    yValue = []
+    thetaValue = []
+    print("path_cb2 Callback")
+    poses = msg.poses
+    # self.xValue = poses[0].position.x
+    # self.yValue = poses[0].position.y
+    # rot_q = poses[0].orientation
+    # (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+    # self.thetaValue = theta_pos
+
+    for i in range(1, len(poses)) :
+        xValue.append(poses[i].position.x)
+        yValue.append(poses[i].position.y)
+        rot_q = poses[i].orientation
+        (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+        thetaValue.append(theta_pos)
+
 # SETUP
 
 si.set_defaults()
@@ -100,6 +122,7 @@ sub = rospy.Subscriber("/odom", Odometry, newOdom)
 pub_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 mark_pub = rospy.Publisher('visualization_marker_array', MarkerArray, queue_size=1)
 sub_path = rospy.Subscriber('/move_base/TrajectoryPlannerROS/local_plan', Path, path_cb)
+sub_path2 = rospy.Subscriber("/poseArrayTopic", PoseArray, path_cb2)
 
 rospy.init_node("position_controller")
 
@@ -220,18 +243,22 @@ while not rospy.is_shutdown():
             speed.angular.z = 0.0
             u_0 = [0.0, 0.0]
         else:
-            xref[0] = xValue[len(xValue)/3]
-            xref[1] = xValue[2*len(xValue)/3]
-            yref[0] = yValue[len(yValue)/3]
-            yref[1] = yValue[2*len(yValue)/3]
-            xref[2] = xValue[len(xValue)-1]
-            yref[2] = yValue[len(yValue)-1]
-            theta_ref[0] = thetaValue[len(xValue)/3]
-            theta_ref[1] = thetaValue[2*len(xValue)/3]
-            theta_ref[2] = thetaValue[len(thetaValue)-1]
-            for ii in range(2):
-                xref[ii+3] = xref[ii+2] + 0.1*cos(theta_ref[2])
-                yref[ii+3] = yref[ii+2] + 0.1*sin(theta_ref[2])
+            # xref[0] = xValue[len(xValue)/3]
+            # xref[1] = xValue[2*len(xValue)/3]
+            # yref[0] = yValue[len(yValue)/3]
+            # yref[1] = yValue[2*len(yValue)/3]
+            # xref[2] = xValue[len(xValue)-1]
+            # yref[2] = yValue[len(yValue)-1]
+            # theta_ref[0] = thetaValue[len(xValue)/3]
+            # theta_ref[1] = thetaValue[2*len(xValue)/3]
+            # theta_ref[2] = thetaValue[len(thetaValue)-1]
+            # for ii in range(2):
+            #     xref[ii+3] = xref[ii+2] + 0.1*cos(theta_ref[2])
+            #     yref[ii+3] = yref[ii+2] + 0.1*sin(theta_ref[2])
+
+            xref = xValue[0:5]
+            yref = yValue[0:5]
+            theta_ref = thetaValue[0:5]
 
             print "xref: " + str(xref)
             print "yref: " + str(yref)
