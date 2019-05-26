@@ -51,6 +51,8 @@ class rrt_handler :
         self.sub_goal = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.newGoal)
         self.sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, self.newPos)
         self.sub_pos2 = rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, self.newPos2)
+        self.sub_path2 = rospy.Subscriber("/poseArrayTopic", PoseArray, self.path_cb2)
+
 
         # Marker Publisher
         self.markerArray = MarkerArray()
@@ -76,6 +78,11 @@ class rrt_handler :
         self.y_goal = 0.0
 
         self.prev_theta = 0.0
+
+        # Vactorn names to be used in the MPC program.
+        self.xValue = None
+        self.yValue = None
+        self.thetaValue = None
 
     def ogrid_callback(self, msg):
 
@@ -104,14 +111,16 @@ class rrt_handler :
             # GET PATH FOR PLOTTING
 
             path = RRT.get_path()
-            #path = np.flip(path, axis = 0)
             path_shape = path.shape
             path = path.reshape(path_shape[0]/2,2)
+            print("PATH1", path)
+            path = np.flip(path, axis = 0)
+            print("PATH2", path)
             path = path*0.05
-            print("PATH", path)
             print("Path shape", path_shape[0])
-            self.path = path
-            self.path_shape = path_shape
+
+            #self.path = path
+            #self.path_shape = path_shape
 
             for i in range(path_shape[0]/2) :
                 marker = Marker()
@@ -253,6 +262,28 @@ class rrt_handler :
 
         rot_q = msg.pose.pose.orientation
         (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+
+    # Test callback functioin for the path published
+    def path_cb2(self, msg) :
+
+        print("path_cb2 Callback")
+        poses = msg.poses
+        self.xValue = poses[0].position.x
+        self.yValue = poses[0].position.y
+        rot_q = poses[0].orientation
+        (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+        self.thetaValue = theta_pos
+
+        for i in range(1, len(poses)) :
+            self.xValue = np.append(self.xValue, poses[i].position.x)
+            self.yValue = np.append(self.yValue, poses[i].position.y)
+            rot_q = poses[i].orientation
+            (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+            self.thetaValue = np.append(self.thetaValue, theta_pos)
+
+        print("xValue", self.xValue)
+        print("yValue", self.yValue)
+        print("thetaValue", self.thetaValue)
 
 if __name__ == "__main__":
     rospy.init_node("rrt_handler_node")
