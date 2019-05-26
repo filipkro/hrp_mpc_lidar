@@ -15,7 +15,7 @@ from math import atan2
 import roslib; roslib.load_manifest('visualization_marker_tutorials')
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
-import rospy
+from math import floor
 
 si.set_defaults()
 si.setup_indexing()
@@ -29,6 +29,10 @@ u_0 = [0.0, 0.0]
 x_odom = 0.0
 y_odom = 0.0
 theta_odom = 0.0
+
+xValue = [0.0, 0.0, 0.0, 0.0, 0.0]
+yValue = [0.0, 0.0, 0.0, 0.0, 0.0]
+thetaValue = [0.0, 0.0, 0.0, 0.0, 0.0]
 
 # Callbak function
 def newPos(msg) :
@@ -176,6 +180,11 @@ while not rospy.is_shutdown():
     y_used = y_odom
     theta_used = theta_odom
 
+    print "xValue: " + str(xValue)
+    print "yValue: " + str(yValue)
+
+    print "xLen: " + str(len(xValue))
+    print "yLen: " + str(len(yValue))
     #viz pos & path Rviz
 
     marker = Marker()
@@ -194,6 +203,8 @@ while not rospy.is_shutdown():
     marker.pose.position.x = x_used
     marker.pose.position.y = y_used
 
+    
+
      # We add the new marker to the MarkerArray, removing the oldest
    # marker from it when necessary
     if(count > MARKERS_MAX):
@@ -206,7 +217,7 @@ while not rospy.is_shutdown():
     for m in markerArray.markers:
         m.id = id
         id += 1
-
+    
    # Publish the MarkerArray
     publisher.publish(markerArray)
 
@@ -220,7 +231,7 @@ while not rospy.is_shutdown():
         #u_prev
         si.set_parameters(13,0,u_0[0])
         si.set_parameters(13,1,u_0[1])
-
+        
         A = np.array([[1.0,0.0,-u_0[0]*h*np.sin(theta_used)], [0.0,1.0,u_0[0]*h*np.cos(theta_used)], [0.0,0.0,1.0]])
         for i in range(3):
             for j in range(3):
@@ -236,7 +247,7 @@ while not rospy.is_shutdown():
         #     xref[cnt] = xref_long.pop(0)
         #     yref[cnt] = yref_long.pop(0)
         #     cnt += 1
-        if len(xref_long) < 5:
+        if len(xref_long) < 5 | len(xValue) < 5:
             si.set_parameters(13,0,u_0[0])
 
 
@@ -266,36 +277,46 @@ while not rospy.is_shutdown():
 
 
         else:
-            xref = xref_long[0:5]
-            yref = yref_long[0:5]
-            xref_long = np.delete(xref_long, 0)
-            yref_long = np.delete(yref_long, 0)
-            deltay = yref[4] - y_used
-            deltax = xref[4] - x_used
-            print "deltax: " + str(deltax)
-            print "deltay: " + str(deltay)
-            theta_ref = atan2(deltay, deltax)
+            # if len(xValue) > 49:
+            #     xref = xValue[0:50:10]
+            #     yref = yValue[0:50:10]
+            # else:
+            
+            xref = xValue[0:len(xValue):floor(len(xValue)/5)]
+            yref = yValue[0:len(yValue):floor(len(yValue)/5)]
+            print "287"
+            print "xref: " + str(xref)
+            print "yref: " + str(yref) 
+            # xref_long = np.delete(xref_long, 0)
+            # yref_long = np.delete(yref_long, 0)
+            # deltay = yref[4] - y_used
+            # deltax = xref[4] - x_used
+            # print "deltax: " + str(deltax)
+            # print "deltay: " + str(deltay)
+            theta_ref = thetaValue[0:5]
+            
+            #= atan2(deltay, deltax)
 
             si.set_parameters(7,0,xref[0])
             si.set_parameters(7,1,yref[0])
-            si.set_parameters(7,2,theta_ref)
-
+            si.set_parameters(7,2,theta_ref[0])
+            
             si.set_parameters(8,0,xref[1])
             si.set_parameters(8,1,yref[1])
-            si.set_parameters(8,2,theta_ref)
+            si.set_parameters(8,2,theta_ref[1])
 
             si.set_parameters(9,0,xref[2])
             si.set_parameters(9,1,yref[2])
-            si.set_parameters(9,2,theta_ref)
+            si.set_parameters(9,2,theta_ref[2])
 
             si.set_parameters(10,0,xref[3])
             si.set_parameters(10,1,yref[3])
-            si.set_parameters(10,2,theta_ref)
-
+            si.set_parameters(10,2,theta_ref[3])
+            
             si.set_parameters(11,0,xref[4])
             si.set_parameters(11,1,yref[4])
-            si.set_parameters(11,2,theta_ref)
-
+            si.set_parameters(11,2,theta_ref[4])
+            
             si.solve()
 
 
@@ -308,11 +329,10 @@ while not rospy.is_shutdown():
         speed.angular.z = u2[0]
 
         u_0 = [u1[0], u2[0]]
-        print "u1, u2: "
-        print u_0
-
-        print "xref: " + str(xref)
-        print "yref: " + str(yref)
+        print "u1, u2: " + str(u_0)
+    
+        # print "xref: " + str(xref)
+        # print "yref: " + str(yref)
 
 
     except (ValueError, TypeError):

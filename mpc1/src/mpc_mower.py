@@ -89,7 +89,7 @@ count = 0
 #     yref_long[34-i] = 0.15*i
 # yref_long[13:27] = 0.15*8
 
-x_len = 2
+x_len = 1.5
 run_time = 40
 xref_long = np.array(np.linspace(0, x_len, run_time/h))
 yref_long = 0 * xref_long

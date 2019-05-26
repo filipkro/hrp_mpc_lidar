@@ -1,6 +1,6 @@
 TrajectoryPlannerROS:
   max_vel_x: 0.5
-  min_vel_x: 0.01
+  min_vel_x: 0.0
   max_vel_y: 0
   min_vel_y: 0
   max_vel_theta: 1
@@ -17,3 +17,5 @@ TrajectoryPlannerROS:
 
   xy_goal_tolerance: 0.5
   yaw_goal_tolerance: 0.05
+
+  sim_granularity: 10000.0
