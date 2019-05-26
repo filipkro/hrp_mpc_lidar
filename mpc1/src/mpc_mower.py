@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import rospy
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion as euler_fq
@@ -14,7 +13,7 @@ from math import atan2
 import roslib; roslib.load_manifest('visualization_marker_tutorials')
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
-import rospy
+
 
 si.set_defaults()
 si.setup_indexing()
@@ -61,9 +60,12 @@ rospy.init_node("position_controller")
 
 sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
 sub = rospy.Subscriber("/odom", Odometry, newOdom)
-
 pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 
+topic = 'visualization_marker_array'
+mark_pub = rospy.Publisher(topic, MarkerArray, queue_size=1)
+
+markerArray = MarkerArray()
 speed = Twist()
 
 h = 1
@@ -73,19 +75,35 @@ count = 0
 
 #PATH
 
-x_len = 6
-run_time = 40
-temp = np.linspace(0, x_len, run_time/h)
-xref_long = np.array(temp)
-for i in range(5):
-    np.append(xref_long, x_len)
-   # xref_long.append(x_len)
-yref_long = 0*xref_long
+# x_len = 6
+# run_time = 40
+# temp = np.linspace(0, x_len, run_time/h)
+# xref_long = np.array(temp)
+# for i in range(5):
+#     np.append(xref_long, x_len)
+#    # xref_long.append(x_len)
+# yref_long = 0*xref_long
 
-for i in range(8):
-    yref_long[i+5] = 0.15*i
-    yref_long[34-i] = 0.15*i
-yref_long[13:27] = 0.15*8
+# for i in range(8):
+#     yref_long[i+5] = 0.15*i
+#     yref_long[34-i] = 0.15*i
+# yref_long[13:27] = 0.15*8
+
+x_len = 2
+run_time = 40
+xref_long = np.array(np.linspace(0, x_len, run_time/h))
+yref_long = 0 * xref_long
+for i in range(len(xref_long)):
+    yref_long[i] = xref_long[i] * xref_long[i]
+
+
+
+# for i in range(len(xref_long)):
+#     if i < 10:
+#         yref_long[i] = 0
+#     else:
+#         yref_long[i] = 1
+
 
 
 # xref_long = np.linspace(0, x_len, run_time/h)
@@ -114,9 +132,7 @@ rate = rospy.Rate(1/h)
 # xref_long = np.linspace(0,0.5,100)
 # yref_long = 0 * xref_long
 
-topic = 'visualization_marker_array'
-publisher = rospy.Publisher(topic, MarkerArray, queue_size=1)
-markerArray = MarkerArray()
+
 
 # Set parameters
 u_0 = [0.0, 0.0]
@@ -183,7 +199,7 @@ while not rospy.is_shutdown():
         id += 1
 
    # Publish the MarkerArray
-    publisher.publish(markerArray)
+    mark_pub.publish(markerArray)
 
     count += 1
     try :
@@ -213,7 +229,7 @@ while not rospy.is_shutdown():
         #     cnt += 1
         if len(xref_long) < 5:
             si.set_parameters(13,0,u_0[0])
-
+            print "Finished"
 
             si.set_parameters(7,0,x_used)
             si.set_parameters(7,1,y_used)

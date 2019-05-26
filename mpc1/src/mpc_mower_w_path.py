@@ -7,6 +7,7 @@ from geometry_msgs.msg import Point
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import PointStamped
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
 import numpy as np
 import solver_interface as si
 from math import atan
@@ -57,11 +58,26 @@ def newOdom(msg) :
     (roll, pitch, theta_odom) = euler_fq([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
     #theta = yaw;
 
+
+# Callbak function - for path
+def path_cb(msg) :
+    global xValue
+    global yValue
+    global thetaValue
+    xValue = []
+    yValue = []
+    thetaValue = []
+    for i in msg.poses:
+        xValue.append(i.pose.position.x)
+        yValue.append(i.pose.position.y)
+        (roll, pitch, theta_path) = euler_fq([i.pose.orientation.x, i.pose.orientation.y, i.pose.orientation.z, i.pose.orientation.w])
+        thetaValue.append(theta_path)
+
 rospy.init_node("position_controller")
 
 sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
 sub = rospy.Subscriber("/odom", Odometry, newOdom)
-
+sub_path = rospy.Subscriber('/move_base/TrajectoryPlannerROS/local_plan', Path, path_cb)
 pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 
 speed = Twist()
@@ -72,20 +88,29 @@ MARKERS_MAX = 100
 count = 0
 
 #PATH
+#funkar:
+# x_len = 6
+# run_time = 40
+# temp = np.linspace(0, x_len, run_time/h)
+# xref_long = np.array(temp)
+# for i in range(5):
+#     np.append(xref_long, x_len)
+#    # xref_long.append(x_len)
+# yref_long = 0*xref_long
 
-x_len = 6
+# for i in range(8):
+#     yref_long[i+5] = 0.15*i
+#     yref_long[34-i] = 0.15*i
+# yref_long[13:27] = 0.15*8
+
+x_len = 1
 run_time = 40
-temp = np.linspace(0, x_len, run_time/h)
-xref_long = np.array(temp)
+xref_long = np.array(np.linspace(0, x_len, run_time/h))
 for i in range(5):
     np.append(xref_long, x_len)
    # xref_long.append(x_len)
 yref_long = 0*xref_long
 
-for i in range(8):
-    yref_long[i+5] = 0.15*i
-    yref_long[34-i] = 0.15*i
-yref_long[13:27] = 0.15*8
 
 
 # xref_long = np.linspace(0, x_len, run_time/h)
@@ -191,21 +216,21 @@ while not rospy.is_shutdown():
         si.set_parameters(0,0,x_used)
         si.set_parameters(0,1,y_used)
         si.set_parameters(0,2,theta_used)
-        
+
         #u_prev
         si.set_parameters(13,0,u_0[0])
         si.set_parameters(13,1,u_0[1])
-        
+
         A = np.array([[1.0,0.0,-u_0[0]*h*np.sin(theta_used)], [0.0,1.0,u_0[0]*h*np.cos(theta_used)], [0.0,0.0,1.0]])
         for i in range(3):
             for j in range(3):
                 si.set_parameters(3,i+3*j,float(A[i,j]))
-        
+
         B = np.array([[h*np.cos(theta_used),-u_0[0]*np.sin(theta_used)*0.5*h**2], [h*np.sin(theta_used), u_0[0]*np.cos(theta_used)*0.5*h**2], [0,h]])
         for i in range(3):
             for j in range(2):
                 si.set_parameters(4,i+3*j,float(B[i,j]))
-        
+
         #cnt = 0
         # while xref_long & cnt < 5:
         #     xref[cnt] = xref_long.pop(0)
@@ -250,7 +275,7 @@ while not rospy.is_shutdown():
             print "deltax: " + str(deltax)
             print "deltay: " + str(deltay)
             theta_ref = atan2(deltay, deltax)
-            
+
             si.set_parameters(7,0,xref[0])
             si.set_parameters(7,1,yref[0])
             si.set_parameters(7,2,theta_ref)
@@ -273,15 +298,15 @@ while not rospy.is_shutdown():
 
             si.solve()
 
-        
-        
+
+
         cont = np.array(si.get_control_horizon())
         u1 = np.array(cont[::2])
         u2 = np.array(cont[1::2])
-            
+
         speed.linear.x = u1[0]
         speed.angular.z = u2[0]
-            
+
         u_0 = [u1[0], u2[0]]
         print "u1, u2: "
         print u_0
