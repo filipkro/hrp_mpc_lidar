@@ -49,7 +49,7 @@ class rrt_handler :
         self.sub_map = rospy.Subscriber("/map", OccupancyGrid, self.ogrid_callback)
         #sub_map_meta = rospy.Subscriber("/slam_out_pose", MapMetaData, ogrid_emta_callback)
         self.sub_goal = rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.newGoal)
-       # self.sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, self.newPos)
+        self.sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, self.newPos)
         self.sub_pos2 = rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, self.newPos2)
         self.sub_path2 = rospy.Subscriber("/poseArrayTopic", PoseArray, self.path_cb2)
 
@@ -213,7 +213,7 @@ class rrt_handler :
 
             self.publisher.publish(self.markerArray)
             self.markerArray = MarkerArray()
-            path_shape = shape.path
+            path_shape = path.shape
             if path_shape[0] > 4 :
                 self.pose_array_pub.publish(self.poseArray)
             self.poseArray = PoseArray()

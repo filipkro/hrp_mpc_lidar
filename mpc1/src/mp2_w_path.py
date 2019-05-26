@@ -8,6 +8,8 @@ import solver_interface as si
 from math import atan, atan2, cos, sin
 import roslib; roslib.load_manifest('visualization_marker_tutorials')
 from visualization_msgs.msg import Marker, MarkerArray
+from geometry_msgs.msg import PoseArray, Pose
+
 
 # Callbak function
 def newPos(msg) :
@@ -51,7 +53,7 @@ def path_cb(msg) :
         (roll, pitch, theta_path) = euler_fq([i.pose.orientation.x, i.pose.orientation.y, i.pose.orientation.z, i.pose.orientation.w])
         thetaValue.append(theta_path)
 
-def path_cb2(self, msg) :
+def path_cb2(msg) :
     global xValue
     global yValue
     global thetaValue
@@ -70,7 +72,7 @@ def path_cb2(self, msg) :
         xValue.append(poses[i].position.x)
         yValue.append(poses[i].position.y)
         rot_q = poses[i].orientation
-        (roll, pitch, theta_pos) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+        (roll, pitch, theta_pos) = euler_fq([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
         thetaValue.append(theta_pos)
 
 # SETUP
@@ -162,7 +164,7 @@ rate = rospy.Rate(1/h)
 #     marker.scale.y = 0.05
 #     marker.scale.z = 0.05
 #     marker.color.a = 1.0
-#     marker.color.r = 0.0 
+#     marker.color.r = 0.0
 #     marker.color.g = 0.0
 #     marker.color.b = 1.0 # make it blue
 
@@ -231,7 +233,7 @@ while not rospy.is_shutdown():
         for i in range(3):
             for j in range(3):
                 si.set_parameters(3,i+3*j,float(A[i,j]))
-        
+
         B = np.array([[h*np.cos(theta_used),-u_0[0]*np.sin(theta_used)*0.5*h**2], [h*np.sin(theta_used), u_0[0]*np.cos(theta_used)*0.5*h**2], [0,h]])
         for i in range(3):
             for j in range(2):
@@ -315,4 +317,4 @@ while not rospy.is_shutdown():
     print "u2: " + str(speed.angular.z)
 
     pub_vel.publish(speed)
-    rate.sleep()    
+    rate.sleep()
