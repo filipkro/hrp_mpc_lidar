@@ -6,6 +6,8 @@ TrajectoryPlannerROS:
   max_vel_theta: 1
   min_vel_theta: -1
   min_in_place_vel_theta: 1
+  sim_granularity: 10
+  sim_time: 5
 
   acc_lim_theta: 1
   acc_lim_x: 1
@@ -18,4 +20,3 @@ TrajectoryPlannerROS:
   xy_goal_tolerance: 0.5
   yaw_goal_tolerance: 0.05
 
-  sim_granularity: 10000.0
