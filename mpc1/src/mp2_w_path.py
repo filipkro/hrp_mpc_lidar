@@ -119,7 +119,8 @@ si.set_parameters(12,1,0.2)
 
 
 # ROS SETUP
-sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
+#sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
+sub_pos = rospy.Subscriber("/ekf_estimation", PoseStamped, newPos)
 sub = rospy.Subscriber("/odom", Odometry, newOdom)
 pub_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 mark_pub = rospy.Publisher('visualization_marker_array', MarkerArray, queue_size=1)
