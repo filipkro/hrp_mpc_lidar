@@ -131,7 +131,7 @@ class ekf :
         F2  = 0.5*np.trace(Pf2)*e2
 
         mkf = fx + F1 + F2
-        Pkf = np.dot(np.dot(dfdx, P), dfdx.T) + Q + F11 + F21 + F12 + F22
+        Pkf = np.dot(np.dot(dfdx, P), dfdx.T) + self.Q + F11 + F21 + F12 + F22
 
         # Correction
         e1, e2, e3, e4 = np.eye(4)
@@ -146,12 +146,12 @@ class ekf :
         H2  = 0.5*np.trace(Ph2)*e2
 
         e = ym - (hx + H1 + H2)
-        Sk = R + np.dot(np.dot(dhdx,Pkf),dhdx.T)
+        Sk = self.R + np.dot(np.dot(dhdx,Pkf),dhdx.T)
         Kk = np.dot(np.dot(Pkf, dhdx.T),sl.inv(Sk))
         IKC = (np.eye(5)-np.dot(Kk,dhdx))
 
         mk = mkf + np.dot(Kk,e)
-        Pk = np.dot(np.dot(IKC,Pkf),IKC.T) + np.dot(np.dot(Kk,R),Kk.T)
+        Pk = np.dot(np.dot(IKC,Pkf),IKC.T) + np.dot(np.dot(Kk,self.R),Kk.T)
         return mk, Pk
 
 if __name__ == "__main__":
