@@ -59,7 +59,7 @@ class rrt :
 
         self.path = np.array([0,0])
 
-        self.sampleSpaceSize = 80;
+        self.sampleSpaceSize = 120;
 
 
     def build_tree(self) :

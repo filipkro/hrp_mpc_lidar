@@ -107,10 +107,11 @@ rate = rospy.Rate(1/h)
 #     yref_long[34-i] = 0.15*i
 # yref_long[13:27] = 0.15*8
 
-x_len = 1
-run_time = 40
+x_len = 3
+run_time = 30
 xref_long = np.array(np.linspace(0, x_len, run_time/h))
 yref_long = 0 * xref_long
+yref_long[len(yref_long)/2:len(yref_long)] = 0.2
 for i in range(len(xref_long)):
     yref_long[i] = xref_long[i] * xref_long[i]
 
@@ -122,7 +123,7 @@ for i in range(len(xref_long)):
     marker.scale.y = 0.05
     marker.scale.z = 0.05
     marker.color.a = 1.0
-    marker.color.r = 0.0 
+    marker.color.r = 0.0
     marker.color.g = 0.0
     marker.color.b = 1.0 # make it blue
 
@@ -191,7 +192,7 @@ while not rospy.is_shutdown():
         for i in range(3):
             for j in range(3):
                 si.set_parameters(3,i+3*j,float(A[i,j]))
-        
+
         B = np.array([[h*np.cos(theta_used),-u_0[0]*np.sin(theta_used)*0.5*h**2], [h*np.sin(theta_used), u_0[0]*np.cos(theta_used)*0.5*h**2], [0,h]])
         for i in range(3):
             for j in range(2):
@@ -259,4 +260,4 @@ while not rospy.is_shutdown():
     print "u2: " + str(speed.angular.z)
 
     pub_vel.publish(speed)
-    rate.sleep()    
+    rate.sleep()
