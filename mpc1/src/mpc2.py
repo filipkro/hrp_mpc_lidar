@@ -107,24 +107,10 @@ rate = rospy.Rate(1/h)
 
 # PATH
 
-<<<<<<< HEAD
-# x_len = 6
-# run_time = 40
-# temp = np.linspace(0, x_len, run_time/h)
-# xref_long = np.array(temp)
-# for i in range(5):
-#     np.append(xref_long, x_len)
-#    # xref_long.append(x_len)
-# yref_long = 0*xref_long
-
-# for i in range(8):
-#     yref_long[i+5] = 0.15*i
-#     yref_long[34-i] = 0.15*i
-# yref_long[13:27] = 0.15*8
-=======
-x_len = 6
+x_len = 4
 run_time = 40
-xref_long = np.array(np.linspace(0, x_len, run_time/h))
+temp = np.linspace(0, x_len, run_time/h)
+xref_long = np.array(temp)
 for i in range(5):
     np.append(xref_long, x_len)
    # xref_long.append(x_len)
@@ -134,7 +120,6 @@ for i in range(8):
     yref_long[i+5] = 0.15*i
     yref_long[34-i] = 0.15*i
 yref_long[13:27] = 0.15*8
->>>>>>> 73172416f72745977b50d244cea6f6d8b4f41cba
 
 # h = 1
 # x_len = 4
