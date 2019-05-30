@@ -20,8 +20,7 @@ import numpy as np
 import math
 import sys
 
-import rrt_test2
-import rrt_test
+import rrt
 
 import roslib; roslib.load_manifest('visualization_marker_tutorials')
 from visualization_msgs.msg import Marker
@@ -54,10 +53,10 @@ class rrt_handler :
         self.sub_path2 = rospy.Subscriber("/poseArrayTopic", PoseArray, self.path_cb2)
 
 
-        ## Marker Publisher (redundant when publishing the poseArray with the path)
-        #self.markerArray = MarkerArray()
-        #self.topic = 'visualization_marker_array'
-        #self.publisher = rospy.Publisher(self.topic, MarkerArray, queue_size=1)
+        # Marker Publisher (redundant when publishing the poseArray with the path)
+        self.markerArray = MarkerArray()
+        self.topic = 'visualization_marker_array'
+        self.publisher = rospy.Publisher(self.topic, MarkerArray, queue_size=1)
 
         # PoseArray Publisher
         self.poseArray = PoseArray()
@@ -101,7 +100,7 @@ class rrt_handler :
             #print("MAX OGRID", np.max(self.ogrid))
             #print("MIN OGRID", np.min(self.ogrid))
 
-            RRT = rrt_test2.rrt(self.ogrid)
+            RRT = rrt.rrt(self.ogrid)
             RRT.startPoint = np.array([self.x_pos, self.y_pos])
             RRT.goalPoint = np.array([self.x_goal, self.y_goal])
             RRT.build_tree()
@@ -125,7 +124,7 @@ class rrt_handler :
             #self.path_shape = path_shape
 
             for i in range(path_shape[0]/2) :
-                """
+
                 marker = Marker()
                 marker.header.frame_id = "/map"
                 marker.type = marker.SPHERE
@@ -143,7 +142,7 @@ class rrt_handler :
                 marker.pose.position.y = path[i, 1]
                 marker.pose.position.z = 0.0
                 self.markerArray.markers.append(marker)
-                """
+
 
                 # make the PoseArray
                 #self.poseArray.header.stamp = self.rostime()

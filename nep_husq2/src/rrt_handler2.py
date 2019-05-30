@@ -20,8 +20,7 @@ import numpy as np
 import math
 import sys
 
-import rrt_test2
-import rrt_test
+import rrt
 
 import roslib; roslib.load_manifest('visualization_marker_tutorials')
 from visualization_msgs.msg import Marker
@@ -121,7 +120,7 @@ class rrt_handler :
         rot_q = msg.pose.orientation
         (roll_goal, pitch_goal, theta_goal) = euler_from_quaternion([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
         #theta = yaw;
-        RRT = rrt_test2.rrt(self.ogrid)
+        RRT = rrt.rrt(self.ogrid)
         RRT.startPoint = np.array([self.x_pos, self.y_pos])
         RRT.goalPoint = np.array([self.x_goal, self.y_goal])
         RRT.build_tree()

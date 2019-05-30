@@ -19,179 +19,195 @@ import numpy as np
 import math
 import sys
 
-import rrt_test
 
-class rrt_handler :
-    def __init__(self):
-        self.ogrid = None
-        self.ogrid_origin = None
-        self.ogrid_cpm = None
-        self.rostime = lambda: rospy.Time.now().to_sec()
+class Node(object):
+    def __init__(self, point, parent):
+        super(Node, self).__init__()
+        self.point = point
+        self.parent = parent
 
-        self.counter = 0
+class rrt :
+    def __init__(self, ogrid_in):
+        self.ogrid = ogrid_in
 
-        # Create vector
-        self.lin = np.linspace(0.0, 100.0, num=10)
-        self.vec = np.transpose(np.array([self.lin, self.lin, np.zeros(self.lin.size)]))
-        #vec = np.transpose(np.matrix([np.power(lin,2), lin, np.zeros(lin.size)]))
-        print("Shape vec: ", self.vec.shape)
+        #OGRID IS TRANSPOSED --> FLIP AND START POINT
+        #self.goalPoint = np.flip(np.array([0.0, 15.0]), axis=0)
+        #self.goalPoint = np.round(np.random.uniform(0,256,2))
+        #self.startPoint = np.flip(np.array([0.0, 0.0]), axis=0)
 
-
-        self.x_scat = np.array([])
-        self.y_scat = np.array([])
-
-        #self.f1 = plt.figure()
-        #self.f2 = plt.figure()
-        #rospy.init_node("RRT")
-
-        self.sub_map = rospy.Subscriber("/map", OccupancyGrid, self.ogrid_callback)
-        #sub_map_meta = rospy.Subscriber("/slam_out_pose", MapMetaData, ogrid_emta_callback)
-
-        #speed = Twist()
-        self.rate = rospy.Rate(2)
-
-        self.flag = 0
+        self.goalPoint = np.array([0.0, 15.0])
+        self.startPoint = np.array([0.0, 0.0])
 
         self.nodes = []
 
-        self.x_goal = 10
-        self.y_goal = 10
+        # self.initial_point = Node(self.startPoint, False)
+        # self.nodes.append(self.initial_point)
+        self.initial_point = None
 
 
+        self.NUMNODES = 1500
+        self.node_counter = 0
+        self.delta = 3
 
-    def ogrid_callback(self, msg):
+        self.all_nodes = np.array([0,0])
+        self.all_random = np.array([0,0])
 
-            self.flag = 1;
-            """
-            Expects an OccupancyGrid message.
-            Stores the ogrid array and origin vector.
-            Reevaluates the current plan since the ogrid changed.
-            """
-            #global ogrid
-            #global ogrid_origin
-            #global ogrid_cpm
-            #global x_sact
-            #global y_scat
+        self.goalNode = None
+        self.goalFound = False
+        self.GOAL_RADIUS = 2
+        print("DISTANCE TEST", self.dist(self.goalPoint, np.array([20.0,200.0])))
 
-            #global counter
-            self.counter = self.counter + 1
+        self.path = np.array([0,0])
 
-            start = self.rostime()
-            self.ogrid = np.array(msg.data).reshape((msg.info.height, msg.info.width))
-            print("Shape ogrid", self.ogrid.shape)
-            print("Ogrid patch", self.ogrid[0:50, 0:50])
+        self.sampleSpaceSize = 120;
 
 
-            RRT = rrt_test.rrt()
+    def build_tree(self) :
 
-            # This opens new windows for displaying images every interation -> super anoying
-            #img = ogrid + 1
-            #img = Image.fromarray(img.astype(np.uint8))
-            #img.show()
-            self.ogrid[self.ogrid < 0] = 50
+        self.initial_point = Node(self.startPoint, False)
+        self.nodes.append(self.initial_point)
 
-            #if self.counter == 1 :
-            #plt.figure(self.f1.number)
+        while self.node_counter < self.NUMNODES and self.goalFound == False:
+            foundNext = False
+            while foundNext == False:
+                rand = self.get_random_clear()
+                parentNode = self.nodes[0]
+                for p in self.nodes:
+                    if self.dist(p.point,rand) <= self.dist(parentNode.point,rand):
+                        newPoint = self.step_from_to(p.point,rand)
+                        #print("Newpoint", newPoint)
+                        if self.collides(newPoint) == False:
+                            parentNode = p
+                            foundNext = True
 
-            #plt.imshow(self.ogrid, cmap='hot', interpolation='nearest')
-            #plt.show()
-            #plt.show(block=False)
-            #plt.figure(1) # throws error
-            #plt.figure()
-            #plt.ion()
-            imgplot = plt.imshow(self.ogrid)
+            newnode = self.step_from_to(parentNode.point,rand)
+            #print("Newpoint", newnode)
+            #print("Goal point", self.goalPoint)
 
-            #plt.show(block=False)
+            self.all_nodes = np.append(self.all_nodes, newnode,  axis=0)
+            self.nodes.append(Node(newnode, parentNode))
 
-            #plt.show()
-            #plt.figure(self.f2.number)
+            if self.dist(newnode, self.goalPoint) <= self.GOAL_RADIUS :
+                self.goalFound = True
+                size = self.get_size()
+                self.goalNode = self.nodes[size-1]
 
-            np.random.seed(19680801)
-            N = 50
-            N = 10
-            x = 256*np.random.rand(N)
-            #print("RRT.vec", np.transpose(RRT.vec[:,0]))
-            #print("RRT.vec shape", np.transpose(RRT.vec[:,0]).shape)
-            y = 256*np.random.rand(N)
-            colors = np.random.rand(N)
-            area = (30 * np.random.rand(N))**2  # 0 to 15 point radii
+            #print("DIST", self.dist(newnode, self.goalPoint))
 
-            #plt.scatter(x, y, s=area, c=colors, alpha=0.5)
-            plt.scatter(self.vec[:,0], self.vec[:,1])
-            print("vec counted", self.vec[self.counter,0])
-            plt.show(block=False)
+            self.node_counter = self.node_counter + 1
 
-
-            """
-            x_scat = np.append(x_scat, vec[counter,0])
-            y_scat = np.append(y_scat, vec[counter,1])
-            plt.scatter(x_scat,y_scat)
-            plt.draw()
-            """
-            """
-            #plt.scatter(vec[counter,0], vec[counter,1])
-            imgplot = plt.imshow(self.ogrid, cmap='hot', interpolation='nearest')
-            plt.show(block=False)
-            """
-
-            """
-            self.x_scat = np.append(self.x_scat, self.vec[self.counter,0])
-            self.y_scat = np.append(self.y_scat, self.vec[self.counter,1])
-
-            #plt.figure(2)
-            plt.figure(self.f2.number)
-            plt.scatter(self.x_scat,self.y_scat)
-            plt.draw()
-            """
+        if(self.goalFound == True) :
+            self.path = self.goalNode.point
+            par = self.goalNode.parent
+            while par != False :
+                self.path = np.append(self.path, par.point, axis=0)
+                par = par.parent
+                #print("pathing2")
 
 
-            #print(self.vec[self.counter,:])
-            print("Counter", self.counter)
-            #plt.plot([100,200,300],[200,150,200],'o')
-            #plt.show(block=False)
+    def dist(self,p1,p2):    #distance between two points
+        return math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
 
-            self.ogrid_origin = np.array([msg.info.origin.position.x, msg.info.origin.position.y])
-            self.ogrid_cpm = 1 / msg.info.resolution
-            try:
-                print("TRY")
-            except:
-                print("\n(WARNING: something went wrong in reevaluate_plan)\n")
-            elapsed = abs(self.rostime() - start)
-            if elapsed > 1:
-                print("\n(WARNING: ogrid callback is taking {} seconds)\n".format(np.round(elapsed, 2)))
+    def get_random_clear(self) :
+        rand_point = np.random.uniform(0,self.sampleSpaceSize,2) - self.sampleSpaceSize/2
+        #rand_point = np.round(np.random.uniform(0,256,2))
 
+        #rand_point = np.array([np.round(np.random.uniform(0,256,1)),np.round(np.random.uniform(0,256,1))])
+        #print("Random point generation", rand_point)
+        self.all_random = np.append(self.all_random, rand_point,  axis=0)
+        return rand_point
+
+    def step_from_to(self,p1,p2):
+        if self.dist(p1,p2) < self.delta:
+            return p2
+        else:
+            theta = math.atan2(p2[1]-p1[1],p2[0]-p1[0])
+            return np.round(p1 + np.array([self.delta*math.cos(theta), self.delta*math.sin(theta)]))
+    def get_all_nodes(self):
+        shape = self.all_nodes.shape
+        return self.all_nodes.reshape(shape[0]/2, 2)
+
+    def get_all_random(self):
+        shape = self.all_random.shape
+        return self.all_random.reshape(shape[0]/2, 2)
+
+    def collides(self, point):
+        #print("point", point)
+        #print(point[0])
+        #print(int(point[0]))
+        if self.ogrid[int(point[1])+128 ,int(point[0])+128] < 40 :
+            return False
+        return True
+
+    def get_goal_node(self) :
+        return self.goalNode
+    def get_goal_point(self) :
+        return self.goalPoint
+    def get_tree(self) :
+        return self.nodes
+    def get_size(self) :
+        return len(self.nodes)
+    def get_path(self) :
+        return self.path
+    def set_goal(self, point) :
+        self.goalPoint = np.flip(point, axis=0)
+    def set_pos(self, point) :
+        self.startPoint = np.flip(point, axis=0)
 
 if __name__ == "__main__":
-    rospy.init_node("rrt_handler_node")
-    RRT_handler = rrt_handler()
+    RRT = rrt()
+    RRT.build_tree()
+    all_nodes = RRT.get_all_nodes()
+    print(all_nodes)
+    all_random = RRT.get_all_random()
 
-    """
-    plt.ion()
-    plt.figure(2)
-    axes = plt.gca()
-    axes.set_xlim([-5,260])
-    axes.set_ylim([-5,260])
-    """
-    print("HEEEEEY")
-    """
-    np.random.seed(19680801)
-    N = 50
-    x = np.random.rand(N)
-    print("RRT.vec", np.transpose(RRT.vec[:,0]))
-    print("RRT.vec shape", np.transpose(RRT.vec[:,0]).shape)
-    y = np.random.rand(N)
-    colors = np.random.rand(N)
-    area = (30 * np.random.rand(N))**2  # 0 to 15 point radii
+    print("ALL_NODES_SHAPE", RRT.get_all_nodes().shape)
 
-    plt.scatter(x, y, s=area, c=colors, alpha=0.5)
-    #plt.plot(x,y,'ro')
-    #plt.draw()
-    #plt.show(block=False)
+    plt.scatter(all_nodes[:,0], all_nodes[:,1])
+    plt.scatter(all_nodes[-1,0], all_nodes[-1,1], s=100, c='g', marker='o',)
+    plt.scatter(all_nodes[0,0], all_nodes[0,1], s=100, c='g', marker='o',)
+
+    goal = RRT.get_goal_point()
+    plt.scatter(goal[0], goal[1], s=100, c='r', marker='o',)
+
+
+    tree = RRT.get_tree()
+    tree_size = RRT.get_size()
+    print("Tree size", tree_size)
+
+    for i in range(tree_size) :
+        node = tree[tree_size-1-i]
+
+        if tree_size-1-i != 0 :
+            parent = node.parent
+            plt.plot([node.point[0], parent.point[0]],[node.point[1],parent.point[1]], 'ro-')
+
+        print("Working", i)
+    #plt.plot([0, 100],[0,100], 'ro-')
+
+    path = RRT.path
+
+    path_shape = path.shape
+    path = path.reshape(path_shape[0]/2,2)
+    print("PATH", path)
+    plt.scatter(path[:,0], path[:,1], s=150, c='k', marker='o',)
+
     plt.show()
+
     """
+    goalNode = tree[tree_size -1]
+    path = goalNode.point
 
+    par = goalNode.parent
+    print("Parent point", par)
 
+    #while parent != False :
+    for i in range(100) :
+        np.append(path, par.point)
+        parent = goalNode.parent
+        print("pathing", par)
 
-    while not rospy.is_shutdown() :
-        print("Running")
-        RRT_handler.rate.sleep()
+    np.append(path, tree[0].point)
+
+    print("PATH", path)
+    """

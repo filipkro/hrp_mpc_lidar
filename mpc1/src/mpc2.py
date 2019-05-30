@@ -84,12 +84,12 @@ si.set_parameters(2,0,1.0)
 si.set_parameters(2,3,10.0)
 
 #u_max
-si.set_parameters(5,0,0.5)
+si.set_parameters(5,0,1.0)
 si.set_parameters(5,1,1.0)
 
 #deltau_max
 si.set_parameters(12,0,0.4)
-si.set_parameters(12,1,0.4)
+si.set_parameters(12,1,0.6)
 
 
 # ROS SETUP
@@ -107,7 +107,6 @@ rate = rospy.Rate(1/h)
 
 # PATH
 
-<<<<<<< HEAD
 # x_len = 6
 # run_time = 40
 # temp = np.linspace(0, x_len, run_time/h)
@@ -122,16 +121,9 @@ rate = rospy.Rate(1/h)
 #     yref_long[34-i] = 0.15*i
 # yref_long[13:27] = 0.15*8
 
-<<<<<<< HEAD
-x_len = 3
-run_time = 30
-xref_long = np.array(np.linspace(0, x_len, run_time/h))
-yref_long = 0 * xref_long
-yref_long[len(yref_long)/2:len(yref_long)] = 0.2
-=======
+
 h = 1
-=======
->>>>>>> 55b7998cecfb15c75fd84ac77a5c1270713cc54f
+
 x_len = 4
 run_time = 40
 temp = np.linspace(0, x_len, run_time/h)
@@ -153,7 +145,6 @@ yref_long[13:27] = 0.15*8
 # yref_long = 0 * xref_long
 # yref_long[len(yref_long)/2:len(yref_long)] = 0.75
 
->>>>>>> 186f923041f82109aa6b5a788fce7efd05f0b8ef
 for i in range(len(xref_long)):
     # yref_long[i] = xref_long[i] * xref_long[i]
 
