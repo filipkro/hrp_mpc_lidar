@@ -41,7 +41,20 @@ def newOdom(msg) :
 
     rot_q = msg.pose.pose.orientation
     (roll, pitch, theta_odom) = euler_fq([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
-    #theta = yaw;
+    #theta = yaw
+
+def ekf_callback(msg) :
+
+    print "ekf callback"
+
+    x_ekf = pose_point.pose.position.x
+    y_ekf = pose_point.pose.position.y
+
+    rot_q = msg.pose.orientation
+    (roll, pitch, theta_ekf) = euler_fq([rot_q.x, rot_q.y, rot_q.z, rot_q.w])
+
+    # print("x-estimate: ", pose_point.position.x)
+    # print("y-estimate: ", pose_point.position.y)
 
 
 # SETUP
@@ -62,9 +75,9 @@ theta_odom = 0.0
 h = 1
 
 #Q
-si.set_parameters(1,0,10000.0)
-si.set_parameters(1,4,10000.0)
-si.set_parameters(1,8,0.0)
+si.set_parameters(1,0,10.0)
+si.set_parameters(1,4,10.0)
+si.set_parameters(1,8,1.0)
 
 #R
 si.set_parameters(2,0,1.0)
@@ -84,6 +97,7 @@ sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
 sub = rospy.Subscriber("/odom", Odometry, newOdom)
 pub_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 mark_pub = rospy.Publisher('visualization_marker_array', MarkerArray, queue_size=1)
+sub_ekf = rospy.Publisher("/ekf_estimate", PoseStamped, queue_size=1)
 
 rospy.init_node("position_controller")
 
@@ -107,12 +121,12 @@ rate = rospy.Rate(1/h)
 #     yref_long[34-i] = 0.15*i
 # yref_long[13:27] = 0.15*8
 
-h = 1
-x_len = 4
-runt_time = 50
-xref_long = np.array(np.linspace(0,x_len,runt_time/h))
-yref_long = 0 * xref_long
-yref_long[len(yref_long)/2:len(yref_long)] = 0.75
+# h = 1
+# x_len = 4
+# runt_time = 50
+# xref_long = np.array(np.linspace(0,x_len,runt_time/h))
+# yref_long = 0 * xref_long
+# yref_long[len(yref_long)/2:len(yref_long)] = 0.75
 
 for i in range(len(xref_long)):
     # yref_long[i] = xref_long[i] * xref_long[i]
