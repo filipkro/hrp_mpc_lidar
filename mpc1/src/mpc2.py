@@ -75,8 +75,8 @@ si.set_parameters(5,0,0.5)
 si.set_parameters(5,1,1.0)
 
 #deltau_max
-si.set_parameters(12,0,0.2)
-si.set_parameters(12,1,0.2)
+si.set_parameters(12,0,0.4)
+si.set_parameters(12,1,0.4)
 
 
 # ROS SETUP
