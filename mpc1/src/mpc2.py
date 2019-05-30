@@ -107,13 +107,23 @@ rate = rospy.Rate(1/h)
 #     yref_long[34-i] = 0.15*i
 # yref_long[13:27] = 0.15*8
 
+<<<<<<< HEAD
 x_len = 3
 run_time = 30
 xref_long = np.array(np.linspace(0, x_len, run_time/h))
 yref_long = 0 * xref_long
 yref_long[len(yref_long)/2:len(yref_long)] = 0.2
+=======
+h = 1
+x_len = 4
+runt_time = 50
+xref_long = np.array(np.linspace(0,x_len,runt_time/h))
+yref_long = 0 * xref_long
+yref_long[len(yref_long)/2:len(yref_long)] = 0.75
+
+>>>>>>> 186f923041f82109aa6b5a788fce7efd05f0b8ef
 for i in range(len(xref_long)):
-    yref_long[i] = xref_long[i] * xref_long[i]
+    # yref_long[i] = xref_long[i] * xref_long[i]
 
     marker = Marker()
     marker.header.frame_id = "/map"

@@ -54,10 +54,11 @@ class rrt_handler :
         self.sub_path2 = rospy.Subscriber("/poseArrayTopic", PoseArray, self.path_cb2)
 
 
-        # Marker Publisher
-        self.markerArray = MarkerArray()
-        self.topic = 'visualization_marker_array'
-        self.publisher = rospy.Publisher(self.topic, MarkerArray, queue_size=1)
+        ## Marker Publisher (redundant when publishing the poseArray with the path)
+        #self.markerArray = MarkerArray()
+        #self.topic = 'visualization_marker_array'
+        #self.publisher = rospy.Publisher(self.topic, MarkerArray, queue_size=1)
+
         # PoseArray Publisher
         self.poseArray = PoseArray()
         self.pose_array_pub = rospy.Publisher("/poseArrayTopic", PoseArray)

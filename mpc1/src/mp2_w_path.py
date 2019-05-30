@@ -120,14 +120,14 @@ si.set_parameters(12,1,0.2)
 
 # ROS SETUP
 #sub_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, newPos)
-sub_pos = rospy.Subscriber("/ekf_estimation", PoseStamped, newPos)
+sub_pos = rospy.Subscriber("/ekf_estimate", PoseStamped, newPos)
 sub = rospy.Subscriber("/odom", Odometry, newOdom)
 pub_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 mark_pub = rospy.Publisher('visualization_marker_array', MarkerArray, queue_size=1)
 sub_path = rospy.Subscriber('/move_base/TrajectoryPlannerROS/local_plan', Path, path_cb)
 sub_path2 = rospy.Subscriber("/poseArrayTopic", PoseArray, path_cb2)
 
-rospy.init_node("position_controller")
+rospy.init_node("mpc")
 
 markerArray = MarkerArray()
 speed = Twist()
@@ -187,9 +187,9 @@ rate = rospy.Rate(1/h)
 
 while not rospy.is_shutdown():
     try:
-        x_used = x_odom
-        y_used = y_odom
-        theta_used = theta_odom
+        x_used = x #_odom
+        y_used = y #_odom
+        theta_used = theta #_odom
 
         # PLOT TRAVELLED PATH RVIZ
 
