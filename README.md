@@ -1,3 +1,1 @@
-# src
-
-Ersätt src i catkin_ws med denna
+Clone to src folder in catkin_ws
